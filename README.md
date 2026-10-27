@@ -1,12 +1,14 @@
 # CapMonster Cloud Go SDK: Golang Captcha Solver & Captcha Bypass for reCAPTCHA, Cloudflare Turnstile and GeeTest
 
+> **🔄 Migrating from 2Captcha or Capsolver?** CapMonster Cloud is a fast, cost-effective **2captcha alternative** and **capsolver alternative** for Go: reCAPTCHA v3 from **$0.90 per 1,000 solves**, which is **up to 38% cheaper than 2Captcha** and **10% cheaper than Capsolver**, with an API response time of **≤ 2 s**. Already have software built for 2Captcha? CapMonster Cloud [supports the 2Captcha API format](https://docs.capmonster.cloud/docs/external-services/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme). Moving your Go code takes just a few lines: see the **Migration examples** below. Full comparison and disclaimer are in the comparison section below.
+
 <p align="center">
   <a href="https://capmonster.cloud/en/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme">
     <img src="https://img.shields.io/badge/CapMonster%20Cloud-Go%20Captcha%20Solver-00B2FF?style=for-the-badge&logo=go&logoColor=white" alt="CapMonster Cloud Go SDK - Golang captcha solver and captcha bypass API client" height="40">
   </a>
 </p>
 
-Official Go (Golang) client library for the [CapMonster Cloud](https://capmonster.cloud/en/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) AI-powered captcha solving service and captcha bypass API. Use this Go captcha solver to bypass reCAPTCHA v2, reCAPTCHA v3, reCAPTCHA v2 Enterprise, Cloudflare Turnstile and GeeTest, and to solve reCAPTCHA image-click and text (image-to-text) captchas, in Go web scraping, browser automation and backend services.
+Official Go (Golang) client library for the [CapMonster Cloud](https://capmonster.cloud/en/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) AI-powered captcha solving service and captcha bypass API. Use this Go captcha solver to bypass reCAPTCHA v2, reCAPTCHA v3, reCAPTCHA v2 Enterprise, Cloudflare Turnstile and GeeTest, and to solve reCAPTCHA image-click and text (image-to-text) captchas, in Go web scraping, browser automation and backend services. As the official CapMonster SDK for Go, it is a cost-effective 2captcha alternative and capsolver alternative.
 
 To get your API key, follow the [Getting Started Guide](https://docs.capmonster.cloud/docs/getting-start/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme): register on CapMonster Cloud, top up your balance and pass your personal API key to the client.
 
@@ -20,7 +22,40 @@ To get your API key, follow the [Getting Started Guide](https://docs.capmonster.
 - **Typed tasks:** each captcha type has its own task constructor, for example `tasks.NewRecaptchaV2TaskProxyless` or `tasks.NewImageToTextTask`.
 - **Image-to-text modules:** pick a recognition module with `WithCapMonsterModule`.
 - **Balance check:** `client.GetBalance()` returns your current CapMonster Cloud balance.
+- **Cheaper than alternatives:** reCAPTCHA v3 from $0.90 per 1,000 solves, versus $1.45 at 2Captcha and $1.00 at Capsolver.
+- **Easy migration:** replace your 2Captcha or Capsolver solver call and keep the rest of your scraper or bot unchanged.
 - **Backed by the official API:** request types follow the [CapMonster Cloud API documentation](https://docs.capmonster.cloud/docs/captchas/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
+
+---
+
+## 📊 CapMonster Cloud vs 2Captcha vs Capsolver
+
+Looking for a 2captcha alternative or a capsolver alternative for Go web scraping and automation? Compare price, speed and success rate.
+
+### reCAPTCHA v3
+
+| Parameter | CapMonster Cloud | 2Captcha | CapSolver | DeathByCaptcha |
+| :--- | :---: | :---: | :---: | :---: |
+| Price per 1,000 solves (from) | **$0.90** | $1.45 | $1.00 | $2.89 |
+| API response time | **≤ 2 s** | ≤ 2 s | < 3 s | ≤ 3 s |
+| Solving success rate | **up to 99%** | ~77–92% | ~95–98% | ~64–90% |
+
+*Disclaimer: 2Captcha, CapSolver, and DeathByCaptcha are trademarks of their respective owners. CapMonster Cloud is not affiliated with these entities. Performance metrics and pricing comparisons are based on publicly available data and internal benchmarking conducted on 27.09.2026.*
+
+### Cloudflare Turnstile
+
+| Parameter | CapMonster Cloud | 2Captcha | Anti-Captcha | DeathByCaptcha |
+| :--- | :---: | :---: | :---: | :---: |
+| Price per 1,000 solves (from) | **$1.30** | $1.45 | $2.00 | $2.89 |
+| Time to solve | **6.24 s\*** | 16.9 s | 20.33 s | ~13 s |
+| Solving success rate | **99%\*** | 96% | 96% | 96% |
+
+*Disclaimer: 2Captcha, Anti-Captcha, and DeathByCaptcha are trademarks of their respective owners. CapMonster Cloud is not affiliated with these entities. Performance metrics and pricing comparisons are based on publicly available data and internal benchmarking as of 12.10.2026.*
+
+**What this means in practice:**
+
+- **reCAPTCHA v3:** $0.90 versus $1.45 at 2Captcha is up to 38% cheaper, and $0.90 versus $1.00 at Capsolver is 10% cheaper.
+- **Cloudflare Turnstile:** $1.30 versus $1.45 at 2Captcha is 10% cheaper, and a solving time of 6.24 s versus 16.9 s is more than 60% faster.
 
 ---
 
@@ -72,7 +107,75 @@ fmt.Println(result)
 
 ---
 
+## 🔄 Migrating from 2Captcha or Capsolver
+
+Already use 2Captcha or Capsolver in your Go scraper or bot? Replace only the solver call and keep the rest of your code unchanged. CapMonster Cloud follows the same flow: send the website URL and sitekey, receive the token.
+
+### Migration from 2Captcha (2captcha-go)
+
+```go
+// Before: 2Captcha
+client := api2captcha.NewClient("YOUR_2CAPTCHA_API_KEY")
+captcha := api2captcha.ReCaptcha{
+	SiteKey: "YOUR_SITE_KEY",
+	Url:     "[https://target-website.com/page-with-recaptcha](https://target-website.com/page-with-recaptcha)",
+}
+code, err := client.Solve(captcha.ToRequest())
+```
+
+### Migration from Capsolver (capsolver-go)
+
+```go
+// Before: Capsolver (API key is read from the CAPSOLVER_API_KEY environment variable)
+capSolver := capsolver.CapSolver{}
+s, err := capSolver.Solve(map[string]any{
+	"type":       "ReCaptchaV2taskProxyLess",
+	"websiteURL": "[https://target-website.com/page-with-recaptcha](https://target-website.com/page-with-recaptcha)",
+	"websiteKey": "YOUR_SITE_KEY",
+})
+code := s.Solution.GRecaptchaResponse
+```
+
+### After: CapMonster Cloud
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/ZennoLab/capmonstercloud-client-go/pkg/client"
+	"github.com/ZennoLab/capmonstercloud-client-go/pkg/tasks"
+)
+
+func main() {
+	cm := client.New("YOUR_CAPMONSTER_API_KEY")
+
+	task := tasks.NewRecaptchaV2TaskProxyless(
+		"[https://target-website.com/page-with-recaptcha](https://target-website.com/page-with-recaptcha)",
+		"YOUR_SITE_KEY",
+	)
+
+	solution, err := cm.SolveRecaptchaV2Proxyless(task, false, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(solution.GRecaptchaResponse)
+}
+```
+
+Only the client, the API key and the task constructor change: the token (`GRecaptchaResponse`) is used exactly as before, so the rest of your scraper stays the same.
+
+### Keep existing 2Captcha-based software
+
+Software that already speaks the 2Captcha API can work with CapMonster Cloud without code changes. See the [guide for connecting other services' APIs](https://docs.capmonster.cloud/docs/external-services/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
+
+---
+
 ## Supported Captchas: Bypass reCAPTCHA, Cloudflare Turnstile, GeeTest and More
+
+Use this Go captcha solver for captcha bypass in web scraping and automation: reCAPTCHA bypass (v2, v2 Enterprise, v3), Cloudflare Turnstile solver, GeeTest solver, FunCaptcha solving and image-to-text recognition.
 
 Every request type below follows the official [CapMonster Cloud API documentation](https://docs.capmonster.cloud/docs/captchas/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme):
 
@@ -99,51 +202,5 @@ Every request type below follows the official [CapMonster Cloud API documentatio
 
 ## FAQ
 
-**Is there an official Go (Golang) captcha solver from CapMonster Cloud?**
-Yes. This repository is the official Go client library for the CapMonster Cloud captcha solving service.
-
-**How do I bypass reCAPTCHA v2 in Go?**
-Create a client with your API key, build the task with `tasks.NewRecaptchaV2TaskProxyless`, call `client.SolveRecaptchaV2Proxyless` and use the returned token on the page. See the [reCAPTCHA v2 documentation](https://docs.capmonster.cloud/docs/captchas/no-captcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
-
-**How do I bypass Cloudflare Turnstile in Go?**
-Use the Turnstile request types from the table above. According to the [Turnstile documentation](https://docs.capmonster.cloud/docs/captchas/turnstile-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme), all Turnstile subtypes are supported automatically: manual, non-interactive and invisible.
-
-**Which captcha types does the Go SDK solve?**
-See the table above. You can also browse the [Supported Captchas Overview](https://docs.capmonster.cloud/docs/captchas/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) for all task types of the service.
-
-**How do I get an API key?**
-Register on CapMonster Cloud, top up your balance and copy your personal API key. The [Getting Started Guide](https://docs.capmonster.cloud/docs/getting-start/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) describes each step.
-
-**Which Go version does the module target?**
-Go 1.18 (see `go.mod`).
-
-**How fast are captchas solved?**
-On average between 1 and 30 seconds, depending on the captcha type. More details are in the [CapMonster Cloud FAQ](https://docs.capmonster.cloud/docs/faq/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
-
-**How long is a reCAPTCHA v2 solution valid?**
-According to the [reCAPTCHA v2 documentation](https://docs.capmonster.cloud/docs/captchas/no-captcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme), the returned token is valid for 60 seconds after the captcha is solved, so use it right away.
-
-**Where is the full API reference?**
-See the [API Methods Reference](https://docs.capmonster.cloud/docs/api/methods/create-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
-
----
-
-## Responsible Use
-
-CapMonster Cloud is intended for legitimate business purposes only, such as testing your own website or a website you are authorized to test, and recognizing images you provide. Read more about [ethical and transparent captcha automation](https://capmonster.cloud/en/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
-
----
-
-## Documentation & Links
-
-- [Getting Started Guide](https://docs.capmonster.cloud/docs/getting-start/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme)
-- [Supported Captchas Overview](https://docs.capmonster.cloud/docs/captchas/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme)
-- [API Methods Reference](https://docs.capmonster.cloud/docs/api/methods/create-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme)
-- [CapMonster Cloud FAQ](https://docs.capmonster.cloud/docs/faq/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme)
-- [CapMonster Cloud website](https://capmonster.cloud/en/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme)
-
----
-
-## License
-
-Released under the [MIT License](./LICENSE).
+**Is CapMonster Cloud a 2Captcha alternative for Go?**
+Yes. It is a captcha solving service with an official Go SDK. For reCAPTCHA v3 it starts at $0.90 per 1,000 solves versus $1.45 at 2Captcha, which is up to 38% cheaper. For Cloudflare Turnstile it starts at $1.30 versus $1.45,
