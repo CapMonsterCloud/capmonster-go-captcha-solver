@@ -8,8 +8,11 @@ and Go module rules (a new major version gets a new `/vN` import path).
 
 Full rewrite under a new import path, `github.com/CapMonsterCloud/capmonster-go-captcha-solver/v2`
 (1.x was `github.com/ZennoLab/capmonstercloud-client-go`, which did not match the repository and could not be
-fetched by the repository's own address). 1.x users are not affected until they switch imports; see
-"Migrating from 1.x" in README.md.
+fetched by the repository's own address). 1.x users are not affected until they switch imports. To migrate:
+import `capmonster "github.com/CapMonsterCloud/capmonster-go-captcha-solver/v2"` instead of `pkg/client` and
+`pkg/tasks`, create the client with `capmonster.New(key)`, fill a request struct (e.g. `capmonster.RecaptchaV2Request`,
+with an optional `Proxy` instead of separate `*Proxyless` tasks) and call `client.Solve(ctx, req)` instead of the
+per-type `Solve...` methods.
 
 ### Added
 - One package, `capmonster`: `Client.Solve` (createTask + polling with a per-type schedule), low-level
