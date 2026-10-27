@@ -31,9 +31,9 @@ Official Go (Golang) client library for the [CapMonster Cloud](https://capmonste
 - ⚡ **Fast solving:** AI-based recognition, on average between 1 and 30 seconds depending on the captcha type.
 - 🤖 **Zero human workers:** 100% automated machine learning pipeline with no manual latencies.
 - 🛡️ **Modern anti-bot bypass:** Support for Cloudflare Turnstile, reCAPTCHA Enterprise, GeeTest and FunCaptcha.
-- 🧩 **Typed tasks:** each captcha type has its own task constructor, for example `tasks.NewRecaptchaV2TaskProxyless` or `tasks.NewImageToTextTask`.
-- 🖼️ **Image-to-text modules:** pick a recognition module with `WithCapMonsterModule`.
-- 💳 **Balance check:** `client.GetBalance()` returns your current CapMonster Cloud balance.
+- 🧩 **Typed requests:** each captcha type is a plain struct, for example `capmonster.RecaptchaV2Request` or `capmonster.ImageToTextRequest`, passed to one `client.Solve` method.
+- 🖼️ **Image-to-text modules:** pick a recognition module with the `CapMonsterModule` field, for example `capmonster.ModuleGoogle`.
+- 💳 **Balance check:** `client.GetBalance(ctx)` returns your current CapMonster Cloud balance.
 - 💰 **Cost-effective:** Low-cost pricing structure based on pay-as-you-go balance.
 - 📉 **Cheaper than alternatives:** reCAPTCHA v3 from $0.90 per 1,000 solves, versus $1.45 at 2Captcha and $1.00 at Capsolver.
 - 🔄 **Easy migration:** replace your 2Captcha or Capsolver solver call and keep the rest of your scraper or bot unchanged.
@@ -74,7 +74,13 @@ Looking for a 2captcha alternative or a capsolver alternative for Go web scrapin
 
 ## 📦 Installation
 
-Requires Go 1.18 or newer (see `go.mod`). Import the `pkg/client` and `pkg/tasks` packages as shown in the Quick Start below.
+Requires Go 1.21 or newer.
+
+```bash
+go get github.com/CapMonsterCloud/capmonster-go-captcha-solver/v2
+```
+
+Import the module as `capmonster "github.com/CapMonsterCloud/capmonster-go-captcha-solver/v2"`, as shown in the Quick Start below.
 
 ---
 
@@ -86,41 +92,46 @@ The example below checks your balance, bypasses a reCAPTCHA v2 (without proxy) a
 package main
 
 import (
-"fmt"
+	"context"
+	"fmt"
+	"log"
 
-"github.com/ZennoLab/capmonstercloud-client-go/pkg/client"
-"github.com/ZennoLab/capmonstercloud-client-go/pkg/tasks"
+	capmonster "github.com/CapMonsterCloud/capmonster-go-captcha-solver/v2"
 )
 
 func main() {
-client := client.New("YourClientKey")
+	ctx := context.Background()
+	client := capmonster.New("YourClientKey")
 
-//get balance
-if balance, err := client.GetBalance(); err != nil {
-fmt.Println(err)
-} else {
-fmt.Println(balance)
-}
+	// get balance
+	if balance, err := client.GetBalance(ctx); err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(balance)
+	}
 
-// solve RecaptchaV2 (without proxy)
-recaptchaV2Task := tasks.NewRecaptchaV2TaskProxyless(
-"https://lessons.zennolab.com/captchas/recaptcha/v2_simple.php?level=high",
-"6Lcg7CMUAAAAANphynKgn9YAgA4tQ2KI_iqRyTwd",
-)
-noCache := false
-if result, err := client.SolveRecaptchaV2Proxyless(recaptchaV2Task, noCache, nil); err != nil {
-fmt.Println(err)
-} else {
-fmt.Println(result)
-}
+	// solve reCAPTCHA v2 (without proxy)
+	solution, err := client.Solve(ctx, capmonster.RecaptchaV2Request{
+		WebsiteURL: "https://lessons.zennolab.com/captchas/recaptcha/v2_simple.php?level=high",
+		WebsiteKey: "6Lcg7CMUAAAAANphynKgn9YAgA4tQ2KI_iqRyTwd",
+	})
+	if err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(solution.String("gRecaptchaResponse"))
+	}
 
-// solve ImageToTextTask with module
-imgToTextTask := tasks.NewImageToTextTask("BODY").WithCapMonsterModule(tasks.CapMonsterModuleGoogle)
-if result, err := client.SolveImageToText(imgToTextTask, nil); err != nil {
-fmt.Println(err)
-} else {
-fmt.Println(result)
-}
+	// solve ImageToText with a recognition module
+	imgReq, err := capmonster.ImageToTextFromFile("captcha.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+	imgReq.CapMonsterModule = capmonster.ModuleGoogle
+	if solution, err := client.Solve(ctx, imgReq); err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(solution.String("text"))
+	}
 }
 ```
 
@@ -161,30 +172,28 @@ code := s.Solution.GRecaptchaResponse
 package main
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/ZennoLab/capmonstercloud-client-go/pkg/client"
-	"github.com/ZennoLab/capmonstercloud-client-go/pkg/tasks"
+	capmonster "github.com/CapMonsterCloud/capmonster-go-captcha-solver/v2"
 )
 
 func main() {
-	cm := client.New("YOUR_CAPMONSTER_API_KEY")
+	cm := capmonster.New("YOUR_CAPMONSTER_API_KEY")
 
-	task := tasks.NewRecaptchaV2TaskProxyless(
-		"https://target-website.com/page-with-recaptcha",
-		"YOUR_SITE_KEY",
-	)
-
-	solution, err := cm.SolveRecaptchaV2Proxyless(task, false, nil)
+	solution, err := cm.Solve(context.Background(), capmonster.RecaptchaV2Request{
+		WebsiteURL: "https://target-website.com/page-with-recaptcha",
+		WebsiteKey: "YOUR_SITE_KEY",
+	})
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(solution.GRecaptchaResponse)
+	fmt.Println(solution.String("gRecaptchaResponse"))
 }
 ```
 
-Only the client, the API key and the task constructor change: the token (`GRecaptchaResponse`) is used exactly as before, so the rest of your scraper stays the same.
+Only the client, the API key and the request struct change: the token (`gRecaptchaResponse`) is used exactly as before, so the rest of your scraper stays the same.
 
 ### Keep existing 2Captcha-based software
 
@@ -200,12 +209,12 @@ All task types follow the official [CapMonster Cloud API documentation](https://
 
 | Captcha bypass / solving | Request types | Documentation |
 | :--- | :--- | :--- |
-| reCAPTCHA v2 bypass | `RecaptchaV2ProxylessRequest`, `RecaptchaV2Request` | [RecaptchaV2Task](https://docs.capmonster.cloud/docs/captchas/no-captcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
-| reCAPTCHA v2 Enterprise bypass | `RecaptchaV2EnterpriseProxylessRequest`, `RecaptchaV2EnterpriseRequest` | [RecaptchaV2EnterpriseTask](https://docs.capmonster.cloud/docs/captchas/recaptcha-v2-enterprise-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| reCAPTCHA v2 bypass | `RecaptchaV2Request` (optional `Proxy`) | [RecaptchaV2Task](https://docs.capmonster.cloud/docs/captchas/no-captcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| reCAPTCHA v2 Enterprise bypass | `RecaptchaV2EnterpriseRequest` (optional `Proxy`) | [RecaptchaV2EnterpriseTask](https://docs.capmonster.cloud/docs/captchas/recaptcha-v2-enterprise-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
 | reCAPTCHA v3 bypass | `RecaptchaV3ProxylessRequest` | [RecaptchaV3TaskProxyless](https://docs.capmonster.cloud/docs/captchas/recaptcha-v3-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
 | reCAPTCHA image-click solver (ComplexImageTask) | `RecaptchaComplexImageTaskRequest` | [ComplexImageTask reCAPTCHA](https://docs.capmonster.cloud/docs/captchas/recaptcha-click/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
-| Cloudflare Turnstile bypass | `TurnstileProxylessRequest`, `TurnstileRequest` | [TurnstileTask](https://docs.capmonster.cloud/docs/captchas/turnstile-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
-| GeeTest solver | `GeeTestProxylessRequest`, `GeeTestRequest` | [GeeTestTask](https://docs.capmonster.cloud/docs/captchas/geetest-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Cloudflare Turnstile bypass | `TurnstileRequest` (optional `Proxy`), `TurnstileChallengeTokenRequest`, `TurnstileChallengeCookieRequest`, `TurnstileWaitRoomRequest` | [TurnstileTask](https://docs.capmonster.cloud/docs/captchas/turnstile-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| GeeTest solver | `GeetestV3Request`, `GeetestV4Request` | [GeeTestTask](https://docs.capmonster.cloud/docs/captchas/geetest-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
 | Text captcha solver (image to text) | `ImageToTextRequest` | [ImageToTextTask](https://docs.capmonster.cloud/docs/captchas/image-to-text/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
 
 ---
@@ -257,13 +266,13 @@ Yes. It is a captcha solving service with an official Go SDK. For reCAPTCHA v3 i
 Yes. For reCAPTCHA v3 it is 10% cheaper than Capsolver ($0.90 versus $1.00 per 1,000 solves) and shows an API response time of ≤ 2 s versus < 3 s. See the comparison table above and its disclaimer.
 
 **How do I migrate from 2Captcha or Capsolver to CapMonster Cloud in Go?**
-Create a client with `client.New("YOUR_CAPMONSTER_API_KEY")`, build the task with the matching constructor and call the `Solve...` method. See the migration examples above. Software that already supports the 2Captcha API can also be connected through the [CapMonster Cloud guide](https://docs.capmonster.cloud/docs/external-services/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
+Create a client with `capmonster.New("YOUR_CAPMONSTER_API_KEY")`, fill the matching request struct and call `client.Solve(ctx, req)`. See the migration examples above. Software that already supports the 2Captcha API can also be connected through the [CapMonster Cloud guide](https://docs.capmonster.cloud/docs/external-services/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
 
 **Is there an official Go captcha solver from CapMonster Cloud?**
 Yes. This repository is the official Go client library for the CapMonster Cloud captcha solving service.
 
 **How do I bypass reCAPTCHA v2 in Go?**
-Create a client with your API key, build the task with `tasks.NewRecaptchaV2TaskProxyless`, call `client.SolveRecaptchaV2Proxyless` and use the returned token on the page. See the [reCAPTCHA v2 documentation](https://docs.capmonster.cloud/docs/captchas/no-captcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
+Create a client with your API key, pass a `capmonster.RecaptchaV2Request` to `client.Solve` and use `solution.String("gRecaptchaResponse")` on the page. See the [reCAPTCHA v2 documentation](https://docs.capmonster.cloud/docs/captchas/no-captcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
 
 **How do I bypass Cloudflare Turnstile in Go?**
 Use the Turnstile request types from the supported types table above. According to the [Turnstile documentation](https://docs.capmonster.cloud/docs/captchas/turnstile-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme), all Turnstile subtypes are supported automatically: manual, non-interactive and invisible.
@@ -275,7 +284,7 @@ reCAPTCHA v2, v2 Enterprise and v3, Cloudflare Turnstile, GeeTest, FunCaptcha, i
 Register on CapMonster Cloud, top up your balance and copy your API key. The [Getting Started Guide](https://docs.capmonster.cloud/docs/getting-start/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) describes each step.
 
 **Which Go version does the module target?**
-Go 1.18 (see `go.mod`).
+Go 1.21 or newer (see `go.mod`).
 
 **How fast are captchas solved?**
 On average between 1 and 30 seconds, depending on the captcha type. More details are in the [CapMonster Cloud FAQ](https://docs.capmonster.cloud/docs/faq/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
