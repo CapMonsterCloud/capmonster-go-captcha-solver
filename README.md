@@ -203,4 +203,59 @@ Every request type below follows the official [CapMonster Cloud API documentatio
 ## FAQ
 
 **Is CapMonster Cloud a 2Captcha alternative for Go?**
-Yes. It is a captcha solving service with an official Go SDK. For reCAPTCHA v3 it starts at $0.90 per 1,000 solves versus $1.45 at 2Captcha, which is up to 38% cheaper. For Cloudflare Turnstile it starts at $1.30 versus $1.45,
+Yes. It is a captcha solving service with an official Go SDK. For reCAPTCHA v3 it starts at $0.90 per 1,000 solves versus $1.45 at 2Captcha, which is up to 38% cheaper. For Cloudflare Turnstile it starts at $1.30 versus $1.45, which is 10% cheaper.
+
+**Is CapMonster Cloud a Capsolver alternative for Go?**
+Yes. For reCAPTCHA v3 it is 10% cheaper than Capsolver ($0.90 versus $1.00 per 1,000 solves) and shows an API response time of ≤ 2 s versus < 3 s. See the comparison table above and its disclaimer.
+
+**How do I migrate from 2captcha-go or capsolver-go to CapMonster Cloud?**
+Create a client with `client.New("YOUR_CAPMONSTER_API_KEY")`, build the task with the matching constructor and call the `Solve...` method. See the migration examples above. Software that already supports the 2Captcha API can also be connected through the [CapMonster Cloud guide](https://docs.capmonster.cloud/docs/external-services/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
+
+**Is there an official Go (Golang) captcha solver from CapMonster Cloud?**
+Yes. This repository is the official Go client library for the CapMonster Cloud captcha solving service.
+
+**How do I bypass reCAPTCHA v2 in Go?**
+Create a client with your API key, build the task with `tasks.NewRecaptchaV2TaskProxyless`, call `client.SolveRecaptchaV2Proxyless` and use the returned token on the page. See the [reCAPTCHA v2 documentation](https://docs.capmonster.cloud/docs/captchas/no-captcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
+
+**How do I bypass Cloudflare Turnstile in Go?**
+Use the Turnstile request types from the table above. According to the [Turnstile documentation](https://docs.capmonster.cloud/docs/captchas/turnstile-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme), all Turnstile subtypes are supported automatically: manual, non-interactive and invisible.
+
+**Which captcha types does the Go SDK solve?**
+See the table above. You can also browse the [Supported Captchas Overview](https://docs.capmonster.cloud/docs/captchas/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) for all task types of the service.
+
+**How do I get an API key?**
+Register on CapMonster Cloud, top up your balance and copy your personal API key. The [Getting Started Guide](https://docs.capmonster.cloud/docs/getting-start/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) describes each step.
+
+**Which Go version does the module target?**
+Go 1.18 (see `go.mod`).
+
+**How fast are captchas solved?**
+On average between 1 and 30 seconds, depending on the captcha type. More details are in the [CapMonster Cloud FAQ](https://docs.capmonster.cloud/docs/faq/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
+
+**How long is a reCAPTCHA v2 solution valid?**
+According to the [reCAPTCHA v2 documentation](https://docs.capmonster.cloud/docs/captchas/no-captcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme), the returned token is valid for 60 seconds after the captcha is solved, so use it right away.
+
+**Where is the full API reference?**
+See the [API Methods Reference](https://docs.capmonster.cloud/docs/api/methods/create-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
+
+---
+
+## Responsible Use
+
+CapMonster Cloud is intended for legitimate business purposes only, such as testing your own website or a website you are authorized to test, and recognizing images you provide. Read more about [ethical and transparent captcha automation](https://capmonster.cloud/en/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme).
+
+---
+
+## Documentation & Links
+
+- [Getting Started Guide](https://docs.capmonster.cloud/docs/getting-start/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme)
+- [Supported Captchas Overview](https://docs.capmonster.cloud/docs/captchas/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme)
+- [API Methods Reference](https://docs.capmonster.cloud/docs/api/methods/create-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme)
+- [CapMonster Cloud FAQ](https://docs.capmonster.cloud/docs/faq/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme)
+- [CapMonster Cloud website](https://capmonster.cloud/en/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme)
+
+---
+
+## License
+
+Released under the [MIT License](./LICENSE).
