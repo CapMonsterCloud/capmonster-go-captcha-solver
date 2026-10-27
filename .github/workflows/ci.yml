@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: Go ${{ matrix.go }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.21', 'stable']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - run: go vet ./...
+      # The client is tested against httptest: no network or API key needed.
+      - run: go test -race ./...
+
+  release-readiness:
+    name: version + changelog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: CHANGELOG.md has an entry for Version, module path matches the major version
+        run: |
+          VERSION=$(sed -nE 's/^\s*Version = "([^"]+)".*/\1/p' client.go)
+          echo "version: $VERSION"
+          grep -q "^## \[$VERSION\]" CHANGELOG.md || { echo "CHANGELOG.md has no '## [$VERSION]' section"; exit 1; }
+          MAJOR=${VERSION%%.*}
+          if [ "$MAJOR" -ge 2 ]; then
+            grep -q "^module .*/v$MAJOR$" go.mod || { echo "go.mod module path must end with /v$MAJOR"; exit 1; }
+          fi

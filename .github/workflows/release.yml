@@ -1,0 +1,59 @@
+name: Release
+
+# Tags `vX.Y.Z` and creates a GitHub Release when `Version` in client.go on main has no tag yet; the Go module
+# proxy serves the new tag on the first `go get`. Any other push to main is a no-op.
+# To release: bump `Version` + add a `## [X.Y.Z]` section to CHANGELOG.md in a PR and merge it.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version
+        id: v
+        run: echo "version=$(sed -nE 's/^\s*Version = "([^"]+)".*/\1/p' client.go)" >> "$GITHUB_OUTPUT"
+
+      - name: Already tagged?
+        id: tagged
+        run: |
+          if git rev-parse -q --verify "refs/tags/v${{ steps.v.outputs.version }}" > /dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "v${{ steps.v.outputs.version }} already exists, nothing to release."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-go@v5
+        if: steps.tagged.outputs.exists == 'false'
+        with:
+          go-version: stable
+
+      - name: Checks before releasing
+        if: steps.tagged.outputs.exists == 'false'
+        run: |
+          grep -q "^## \[${{ steps.v.outputs.version }}\]" CHANGELOG.md \
+            || { echo "CHANGELOG.md has no section for ${{ steps.v.outputs.version }}"; exit 1; }
+          go vet ./... && go test ./...
+
+      - name: Tag and GitHub Release
+        if: steps.tagged.outputs.exists == 'false'
+        run: |
+          gh release create "v${{ steps.v.outputs.version }}" \
+            --target "${{ github.sha }}" \
+            --title "v${{ steps.v.outputs.version }}" \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
