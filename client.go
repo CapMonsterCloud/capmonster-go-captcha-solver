@@ -15,7 +15,7 @@ import (
 
 const (
 	// Version of the SDK, also sent in the User-Agent. Bumped on every release (see CHANGELOG.md).
-	Version = "2.0.0"
+	Version = "2.0.1"
 	// DefaultServiceURL is the CapMonster Cloud API endpoint.
 	DefaultServiceURL = "https://api.capmonster.cloud"
 	// DefaultSoftID is sent as softId with every task.
