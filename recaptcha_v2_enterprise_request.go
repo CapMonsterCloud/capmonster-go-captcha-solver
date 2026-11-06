@@ -11,6 +11,7 @@ type RecaptchaV2EnterpriseRequest struct {
 	EnterprisePayload map[string]string `json:"enterprisePayload,omitempty"`
 	APIDomain         string            `json:"apiDomain,omitempty"`  // www.google.com or www.recaptcha.net
 	PageAction        string            `json:"pageAction,omitempty"` // if it differs from the default "verify"
+	MinScore          float64           `json:"minScore,omitempty"`   // 0.1..0.9 (0 = not sent)
 	UserAgent         string            `json:"userAgent,omitempty"`
 	Cookies           string            `json:"cookies,omitempty"`
 }
@@ -19,6 +20,9 @@ func (r RecaptchaV2EnterpriseRequest) Timeouts() Timeouts { return timeouts(1, 3
 
 func (r RecaptchaV2EnterpriseRequest) Task() (map[string]any, error) {
 	if err := required("websiteURL", r.WebsiteURL, "websiteKey", r.WebsiteKey); err != nil {
+		return nil, err
+	}
+	if err := checkMinScore(r.MinScore); err != nil {
 		return nil, err
 	}
 	return buildTask("RecaptchaV2EnterpriseTask", "", r, r.Proxy)

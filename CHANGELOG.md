@@ -4,6 +4,11 @@ All notable changes to this module are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [SemVer](https://semver.org/)
 and Go module rules (a new major version gets a new `/vN` import path).
 
+## [2.0.1]
+
+### Added
+- Optional `MinScore` parameter for `RecaptchaV2EnterpriseRequest`.
+
 ## [2.0.0]
 
 Full rewrite under a new import path, `github.com/CapMonsterCloud/capmonster-go-captcha-solver/v2`
