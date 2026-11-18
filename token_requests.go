@@ -81,6 +81,24 @@ func (r YidunRequest) Task() (map[string]any, error) {
 	return buildTask("YidunTask", "", r, r.Proxy)
 }
 
+// ArCaptchaRequest is ARCaptcha (ArCaptchaTask). The token is in solution.token.
+type ArCaptchaRequest struct {
+	WebsiteURL string `json:"websiteURL"`
+	WebsiteKey string `json:"websiteKey"` // the siteKey (site_key) found on the page
+	// IsInvisible is true if the captcha is invisible, i.e. it has a hidden verification field.
+	IsInvisible *bool  `json:"isInvisible,omitempty"`
+	UserAgent   string `json:"userAgent,omitempty"`
+}
+
+func (r ArCaptchaRequest) Timeouts() Timeouts { return timeouts(1, 3, 180) }
+
+func (r ArCaptchaRequest) Task() (map[string]any, error) {
+	if err := required("websiteURL", r.WebsiteURL, "websiteKey", r.WebsiteKey); err != nil {
+		return nil, err
+	}
+	return buildTask("ArCaptchaTask", "", r, nil)
+}
+
 // BinanceTaskRequest is Binance captcha (BinanceTask). Use only to log in with your own account.
 // ValidateID is dynamic: extract it right before creating the task.
 type BinanceTaskRequest struct {

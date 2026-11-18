@@ -4,6 +4,14 @@ All notable changes to this module are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [SemVer](https://semver.org/)
 and Go module rules (a new major version gets a new `/vN` import path).
 
+## [2.1.0]
+
+### Added
+- `FengkongCloudRequest` (CustomTask, class `fengkongcloud`).
+- `ArCaptchaRequest` (`ArCaptchaTask`).
+- `HeyTapRequest` (CustomTask, class `heytap`).
+- `ProtonRequest` (CustomTask, class `proton`, proxy required).
+
 ## [2.0.1]
 
 ### Added
