@@ -137,6 +137,32 @@ func main() {
 
 ---
 
+## 🔧 Client Configuration
+
+`capmonster.New` accepts functional options after the API key:
+
+| Option | Default | Description |
+| :--- | :--- | :--- |
+| — (first argument) | — | **Required.** API key (`clientKey`) from the [Dashboard](https://dash.capmonster.cloud/Account/SignUp?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme). |
+| `WithServiceURL(serviceURL)` | `https://api.capmonster.cloud` | CapMonster Cloud API endpoint (a trailing slash is trimmed). |
+| `WithSoftID(softID)` | `58` (`capmonster.DefaultSoftID`) | `softId` sent with every created task; identifies your software in the Dashboard. |
+| `WithClientTimeout(timeout)` | `20 * time.Second` | Timeout of one HTTP request to the API (not of the whole solving). |
+| `WithHTTPClient(httpClient)` | built-in `*http.Client` | Custom HTTP client (transport, TLS, and so on). |
+| `WithClientProxy(proxyURL)` | none | Proxy URL for the connection to the CapMonster Cloud API itself, e.g. `http://user:pass@127.0.0.1:8080`. To route a solved task through a proxy, set `Proxy` on the request struct instead. |
+| `WithTimeoutsOverride(t)` | per-captcha-type | Replaces the polling schedule of `Solve`. |
+
+```go
+client := capmonster.New(
+	"YourClientKey",
+	capmonster.WithServiceURL("https://api.capmonster.cloud"),
+	capmonster.WithSoftID(12345),
+	capmonster.WithClientTimeout(30*time.Second),
+	capmonster.WithClientProxy("http://user:pass@127.0.0.1:8080"),
+)
+```
+
+---
+
 ## 🔄 Migrating from 2Captcha or Capsolver
 
 Already use 2Captcha or Capsolver in your Go scraper or bot? Replace only the solver call and keep the rest of your code unchanged. CapMonster Cloud follows the same flow: send the website URL and sitekey, receive the token.
