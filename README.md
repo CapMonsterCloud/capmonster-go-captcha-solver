@@ -285,6 +285,39 @@ All task types follow the official [CapMonster Cloud API documentation](https://
 
 ---
 
+## 🐞 Error Handling
+
+`Solve` returns typed errors; match them with `errors.As` and the `ErrTimeout` sentinel with `errors.Is`:
+
+| Error | Meaning |
+| :--- | :--- |
+| `*TimeoutError` (`errors.Is(err, ErrTimeout)`) | The captcha type's maximum waiting time passed before a solution arrived. Carries `TaskID` and `Timeout`. |
+| `*APIError` | The API returned an error. Carries `Method`, `Code` and `Description` (e.g. `ZERO_BALANCE`). |
+| `*ValidationError` | The request struct failed validation. Carries `Field` and `Reason`. |
+| `*StatusError` | The API answered with a non-200 HTTP status. Carries `Method` and `Status`. |
+| `*MalformedResponseError` | The API response could not be parsed. |
+| `context.Canceled`, `context.DeadlineExceeded` | The passed `context.Context` was cancelled or timed out. |
+
+```go
+solution, err := client.Solve(ctx, req)
+if err != nil {
+	var apiErr *capmonster.APIError
+	switch {
+	case errors.Is(err, capmonster.ErrTimeout):
+		log.Println("no solution in time")
+	case errors.As(err, &apiErr):
+		log.Printf("API error: %s %s", apiErr.Code, apiErr.Description)
+	default:
+		log.Println(err)
+	}
+	return
+}
+```
+
+**Polling and timeouts.** The client polls `getTaskResult` automatically. Each request type defines its own schedule via `req.Timeouts()`: a pause before the first `getTaskResult` call (`FirstRequestDelay`), the polling interval (`RequestsInterval`) and the total waiting time (`Timeout`). Override the schedule with `WithTimeoutsOverride` and limit a single call with `context.WithTimeout`. Unsolved tasks are not charged.
+
+---
+
 ## ⚙️ Best Practices
 
 - **Use tokens promptly:** CAPTCHA tokens expire quickly (a reCAPTCHA v2 token is valid for 60 seconds after solving), so submit or inject the solution immediately after receiving the response.
