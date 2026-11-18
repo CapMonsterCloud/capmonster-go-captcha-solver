@@ -224,6 +224,92 @@ func (r FriendlyCustomTaskRequest) Task() (map[string]any, error) {
 	return buildTask("CustomTask", "friendly", r, r.Proxy)
 }
 
+// FengkongCloudMetadata holds the optional FengkongCloud parameters.
+type FengkongCloudMetadata struct {
+	// APIJsURL is the link to smcp.min.js, e.g. https://example.com/smcp.min.js.
+	APIJsURL string `json:"apiJsUrl,omitempty"`
+}
+
+// FengkongCloudRequest is FengkongCloud captcha (CustomTask, class fengkongcloud). The token is in
+// solution.data.token.
+type FengkongCloudRequest struct {
+	WebsiteURL string                 `json:"websiteURL"`
+	WebsiteKey string                 `json:"websiteKey"` // the siteKey found on the page (the appid parameter of the /conf request)
+	Metadata   *FengkongCloudMetadata `json:"metadata,omitempty"`
+	UserAgent  string                 `json:"userAgent,omitempty"`
+}
+
+func (r FengkongCloudRequest) Timeouts() Timeouts { return timeouts(1, 3, 180) }
+
+func (r FengkongCloudRequest) Task() (map[string]any, error) {
+	if err := required("websiteURL", r.WebsiteURL, "websiteKey", r.WebsiteKey); err != nil {
+		return nil, err
+	}
+	return buildTask("CustomTask", "fengkongcloud", r, nil)
+}
+
+// HeyTapMetadata holds the optional HeyTap parameters.
+type HeyTapMetadata struct {
+	// APIServer is the subdomain of the HeyTap API server: only the domain, without the https:// prefix. Set it if
+	// it differs from the default one.
+	APIServer string `json:"apiServer,omitempty"`
+}
+
+// HeyTapRequest is HeyTap captcha (CustomTask, class heytap). The token is in solution.data.token.
+type HeyTapRequest struct {
+	WebsiteURL string          `json:"websiteURL"`
+	WebsiteKey string          `json:"websiteKey"` // the siteKey found on the page (the ak parameter of the API request)
+	Metadata   *HeyTapMetadata `json:"metadata,omitempty"`
+	UserAgent  string          `json:"userAgent,omitempty"`
+}
+
+func (r HeyTapRequest) Timeouts() Timeouts { return timeouts(1, 3, 180) }
+
+func (r HeyTapRequest) Task() (map[string]any, error) {
+	if err := required("websiteURL", r.WebsiteURL, "websiteKey", r.WebsiteKey); err != nil {
+		return nil, err
+	}
+	return buildTask("CustomTask", "heytap", r, nil)
+}
+
+// Values of ProtonMetadata.PageAction.
+const (
+	ProtonPageActionLogin  = "login"
+	ProtonPageActionSignup = "signup"
+)
+
+// ProtonMetadata holds the Proton Captcha parameters (both are required).
+type ProtonMetadata struct {
+	HumanVerificationToken string `json:"HumanVerificationToken"` // the token from the response
+	// PageAction is the action on the site: ProtonPageActionLogin or ProtonPageActionSignup.
+	PageAction string `json:"pageAction"`
+}
+
+// ProtonRequest is Proton Captcha (CustomTask, class proton). Your own Proxy is required. The solution is in
+// solution.data.tokens (plural).
+type ProtonRequest struct {
+	WebsiteURL string         `json:"websiteURL"`
+	Metadata   ProtonMetadata `json:"metadata"`
+	Proxy      *Proxy         `json:"-"`
+	UserAgent  string         `json:"userAgent,omitempty"`
+}
+
+func (r ProtonRequest) Timeouts() Timeouts { return timeouts(1, 3, 180) }
+
+func (r ProtonRequest) Task() (map[string]any, error) {
+	if err := required("websiteURL", r.WebsiteURL, "metadata.HumanVerificationToken", r.Metadata.HumanVerificationToken,
+		"metadata.pageAction", r.Metadata.PageAction); err != nil {
+		return nil, err
+	}
+	if r.Metadata.PageAction != ProtonPageActionLogin && r.Metadata.PageAction != ProtonPageActionSignup {
+		return nil, &ValidationError{Field: "metadata.pageAction", Reason: "must be 'login' or 'signup'"}
+	}
+	if err := requireProxy(r.Proxy); err != nil {
+		return nil, err
+	}
+	return buildTask("CustomTask", "proton", r, r.Proxy)
+}
+
 // AltchaMetadata holds the challenge parameters taken from the page (all four are required).
 type AltchaMetadata struct {
 	Challenge  string `json:"challenge"`
