@@ -15,7 +15,7 @@ import (
 
 const (
 	// Version of the SDK, also sent in the User-Agent. Bumped on every release (see CHANGELOG.md).
-	Version = "2.1.0"
+	Version = "2.1.1"
 	// DefaultServiceURL is the CapMonster Cloud API endpoint.
 	DefaultServiceURL = "https://api.capmonster.cloud"
 	// DefaultSoftID is sent as softId with every task.
@@ -167,6 +167,9 @@ func (c *Client) CreateTask(ctx context.Context, req Request) (int64, error) {
 type TaskResult struct {
 	Ready    bool
 	Solution Solution // nil while processing
+	// Cost is the solution cost in US dollars. The API returns it only in the ready response;
+	// it is nil while the task is processing or when the field is absent.
+	Cost *float64
 }
 
 // GetTaskResult makes one getTaskResult call (low-level).
@@ -175,6 +178,7 @@ func (c *Client) GetTaskResult(ctx context.Context, taskID int64) (TaskResult, e
 		apiResponse
 		Status   string          `json:"status"`
 		Solution json.RawMessage `json:"solution"`
+		Cost     *float64        `json:"cost"`
 	}
 	err := c.call(ctx, "getTaskResult", map[string]any{"clientKey": c.apiKey, "taskId": taskID}, &resp)
 	var statusErr *StatusError
@@ -191,7 +195,7 @@ func (c *Client) GetTaskResult(ctx context.Context, taskID int64) (TaskResult, e
 	if resp.Status != "ready" {
 		return TaskResult{}, nil
 	}
-	return TaskResult{Ready: true, Solution: Solution(resp.Solution)}, nil
+	return TaskResult{Ready: true, Solution: Solution(resp.Solution), Cost: resp.Cost}, nil
 }
 
 // Solve creates a task, polls until it is solved and returns the solution object.
