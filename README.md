@@ -314,7 +314,7 @@ if err != nil {
 }
 ```
 
-**Polling and timeouts.** The client polls `getTaskResult` automatically. Each request type defines its own schedule via `req.Timeouts()`: a pause before the first `getTaskResult` call (`FirstRequestDelay`), the polling interval (`RequestsInterval`) and the total waiting time (`Timeout`). Override the schedule with `WithTimeoutsOverride` and limit a single call with `context.WithTimeout`. Unsolved tasks are not charged.
+**Polling and timeouts.** The client polls `getTaskResult` automatically. Each request type defines its own schedule via `req.Timeouts()`: a pause before the first `getTaskResult` call (`FirstRequestDelay`), the polling interval (`RequestsInterval`) and the total waiting time (`Timeout`). Override the schedule with `WithTimeoutsOverride` and limit a single call with `context.WithTimeout`. `TaskResult.Cost` (ready responses of `GetTaskResult`) carries the price of the solved task in USD. Unsolved tasks are not charged.
 
 ---
 
