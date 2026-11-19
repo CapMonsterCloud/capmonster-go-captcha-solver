@@ -128,6 +128,26 @@ func TestGetResultAPIErrorIsReported(t *testing.T) {
 	}
 }
 
+func TestGetTaskResultCost(t *testing.T) {
+	api, client := newFakeAPI(t)
+	api.on("getTaskResult", 200, `{"errorId":0,"status":"processing"}`).
+		on("getTaskResult", 200, `{"errorId":0,"status":"ready","solution":{"text":"a"}}`).
+		on("getTaskResult", 200, `{"errorId":0,"cost":0.0003,"status":"ready","solution":{"text":"a"}}`)
+
+	res, err := client.GetTaskResult(context.Background(), 7)
+	if err != nil || res.Ready || res.Cost != nil {
+		t.Fatalf("processing: got %+v %v", res, err)
+	}
+	res, err = client.GetTaskResult(context.Background(), 7)
+	if err != nil || !res.Ready || res.Cost != nil {
+		t.Fatalf("ready without cost: got %+v %v", res, err)
+	}
+	res, err = client.GetTaskResult(context.Background(), 7)
+	if err != nil || !res.Ready || res.Cost == nil || *res.Cost != 0.0003 {
+		t.Fatalf("ready with cost: got %+v %v", res, err)
+	}
+}
+
 func TestHTTP500And503WhilePollingMeanStillProcessing(t *testing.T) {
 	api, client := newFakeAPI(t)
 	api.on("getTaskResult", 500, "Internal Server Error").on("getTaskResult", 503, "")
