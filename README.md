@@ -137,6 +137,32 @@ func main() {
 
 ---
 
+## 🔧 Client Configuration
+
+`capmonster.New` accepts functional options after the API key:
+
+| Option | Default | Description |
+| :--- | :--- | :--- |
+| — (first argument) | — | **Required.** API key (`clientKey`) from the [Dashboard](https://dash.capmonster.cloud/Account/SignUp?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme). |
+| `WithServiceURL(serviceURL)` | `https://api.capmonster.cloud` | CapMonster Cloud API endpoint (a trailing slash is trimmed). |
+| `WithSoftID(softID)` | `58` (`capmonster.DefaultSoftID`) | `softId` sent with every created task; identifies your software in the Dashboard. |
+| `WithClientTimeout(timeout)` | `20 * time.Second` | Timeout of one HTTP request to the API (not of the whole solving). |
+| `WithHTTPClient(httpClient)` | built-in `*http.Client` | Custom HTTP client (transport, TLS, and so on). |
+| `WithClientProxy(proxyURL)` | none | Proxy URL for the connection to the CapMonster Cloud API itself, e.g. `http://user:pass@127.0.0.1:8080`. To route a solved task through a proxy, set `Proxy` on the request struct instead. |
+| `WithTimeoutsOverride(t)` | per-captcha-type | Replaces the polling schedule of `Solve`. |
+
+```go
+client := capmonster.New(
+	"YourClientKey",
+	capmonster.WithServiceURL("https://api.capmonster.cloud"),
+	capmonster.WithSoftID(12345),
+	capmonster.WithClientTimeout(30*time.Second),
+	capmonster.WithClientProxy("http://user:pass@127.0.0.1:8080"),
+)
+```
+
+---
+
 ## 🔄 Migrating from 2Captcha or Capsolver
 
 Already use 2Captcha or Capsolver in your Go scraper or bot? Replace only the solver call and keep the rest of your code unchanged. CapMonster Cloud follows the same flow: send the website URL and sitekey, receive the token.
@@ -210,11 +236,31 @@ All task types follow the official [CapMonster Cloud API documentation](https://
 | Captcha bypass / solving | Request types | Documentation |
 | :--- | :--- | :--- |
 | reCAPTCHA v2 bypass | `RecaptchaV2Request` (optional `Proxy`) | [RecaptchaV2Task](https://docs.capmonster.cloud/docs/captchas/no-captcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
-| reCAPTCHA v2 Enterprise bypass | `RecaptchaV2EnterpriseRequest` (optional `Proxy`) | [RecaptchaV2EnterpriseTask](https://docs.capmonster.cloud/docs/captchas/recaptcha-v2-enterprise-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
-| reCAPTCHA v3 bypass | `RecaptchaV3ProxylessRequest` | [RecaptchaV3TaskProxyless](https://docs.capmonster.cloud/docs/captchas/recaptcha-v3-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| reCAPTCHA v2 Enterprise bypass | `RecaptchaV2EnterpriseRequest` (optional `Proxy`, optional `MinScore` 0.1–0.9) | [RecaptchaV2EnterpriseTask](https://docs.capmonster.cloud/docs/captchas/recaptcha-v2-enterprise-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| reCAPTCHA v3 bypass | `RecaptchaV3ProxylessRequest` (optional `MinScore` 0.1–0.9) | [RecaptchaV3TaskProxyless](https://docs.capmonster.cloud/docs/captchas/recaptcha-v3-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| reCAPTCHA v3 Enterprise bypass | `RecaptchaV3EnterpriseRequest` (optional `MinScore` 0.1–0.9) | [RecaptchaV3EnterpriseTask](https://docs.capmonster.cloud/docs/captchas/recaptcha-v3-enterprise-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
 | reCAPTCHA image-click solver (ComplexImageTask) | `RecaptchaComplexImageTaskRequest` | [ComplexImageTask reCAPTCHA](https://docs.capmonster.cloud/docs/captchas/recaptcha-click/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
-| Cloudflare Turnstile bypass | `TurnstileRequest` (optional `Proxy`), `TurnstileChallengeTokenRequest`, `TurnstileChallengeCookieRequest`, `TurnstileWaitRoomRequest` | [TurnstileTask](https://docs.capmonster.cloud/docs/captchas/turnstile-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Dynamic image solver (ComplexImageTask) | `RecognitionComplexImageTaskRequest` | [Supported Captchas](https://docs.capmonster.cloud/docs/captchas/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Cloudflare Turnstile bypass | `TurnstileRequest` (optional `Proxy`) | [TurnstileTask](https://docs.capmonster.cloud/docs/captchas/turnstile-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Cloudflare Challenge bypass | `TurnstileChallengeTokenRequest`, `TurnstileChallengeCookieRequest` | [TurnstileChallengeTask](https://docs.capmonster.cloud/docs/captchas/turnstile-challenge-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Cloudflare Waiting Room bypass | `TurnstileWaitRoomRequest` | [TurnstileWaitingRoomTask](https://docs.capmonster.cloud/docs/captchas/turnstile-waitroom-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
 | GeeTest solver | `GeetestV3Request`, `GeetestV4Request` | [GeeTestTask](https://docs.capmonster.cloud/docs/captchas/geetest-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| FunCaptcha (Arkose Labs) bypass | `FuncaptchaRequest` | [FunCaptchaTask](https://docs.capmonster.cloud/docs/captchas/funcaptcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Amazon AWS WAF bypass | `AmazonWafChallengeRequest`, `AmazonWafChallengeOnlyRequest`, `AmazonWafVisibleRequest` | [AmazonTask](https://docs.capmonster.cloud/docs/captchas/amazon-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Binance captcha bypass | `BinanceTaskRequest` | [BinanceTask](https://docs.capmonster.cloud/docs/captchas/binance/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| DataDome bypass | `DataDomeCustomTaskRequest` | [DataDome](https://docs.capmonster.cloud/docs/captchas/datadome/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Imperva (Incapsula) bypass | `ImpervaCustomTaskRequest` | [Imperva](https://docs.capmonster.cloud/docs/captchas/incapsula/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| TSPD bypass | `TspdCustomTaskRequest` | [TSPD](https://docs.capmonster.cloud/docs/captchas/tspd-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| TenDI (Tencent) bypass | `TenDiCustomTaskRequest` | [TenDI](https://docs.capmonster.cloud/docs/captchas/tendi/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Basilisk bypass | `BasiliskCustomTaskRequest` | [BasiliskTask](https://docs.capmonster.cloud/docs/captchas/Basilisk-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Alibaba CAPTCHA bypass | `AlibabaCustomTaskRequest` | [Alibaba](https://docs.capmonster.cloud/docs/captchas/alibaba-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Altcha solver | `AltchaCustomTaskRequest` | [Altcha](https://docs.capmonster.cloud/docs/captchas/altcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Friendly Captcha bypass | `FriendlyCustomTaskRequest` | [Friendly](https://docs.capmonster.cloud/docs/captchas/friendly-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Hunt CAPTCHA bypass | `HuntCustomTaskRequest` | [Hunt](https://docs.capmonster.cloud/docs/captchas/hunt-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| FengkongCloud, ARCaptcha, HeyTap and Proton bypass | `FengkongCloudRequest`, `ArCaptchaRequest`, `HeyTapRequest`, `ProtonRequest` | [FengkongCloud](https://docs.capmonster.cloud/docs/captchas/fengkongcloud-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme), [ARCaptcha](https://docs.capmonster.cloud/docs/captchas/arcaptcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme), [HeyTap](https://docs.capmonster.cloud/docs/captchas/heytap-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme), [Proton](https://docs.capmonster.cloud/docs/captchas/proton-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| MTCaptcha bypass | `MTCaptchaRequest` | [MTCaptcha](https://docs.capmonster.cloud/docs/captchas/mtcaptcha-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Prosopo solver | `ProsopoTaskRequest` | [Prosopo](https://docs.capmonster.cloud/docs/captchas/prosopo-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
+| Yidun (NECaptcha) bypass | `YidunRequest` | [Yidun](https://docs.capmonster.cloud/docs/captchas/yidun-task/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
 | Text captcha solver (image to text) | `ImageToTextRequest` | [ImageToTextTask](https://docs.capmonster.cloud/docs/captchas/image-to-text/?utm_source=github&utm_medium=referral&utm_campaign=go_repo_readme) |
 
 ---
@@ -236,6 +282,39 @@ All task types follow the official [CapMonster Cloud API documentation](https://
          ▼
 [ Receive Token & Autosubmit ] ──► Complete bypass
 ```
+
+---
+
+## 🐞 Error Handling
+
+`Solve` returns typed errors; match them with `errors.As` and the `ErrTimeout` sentinel with `errors.Is`:
+
+| Error | Meaning |
+| :--- | :--- |
+| `*TimeoutError` (`errors.Is(err, ErrTimeout)`) | The captcha type's maximum waiting time passed before a solution arrived. Carries `TaskID` and `Timeout`. |
+| `*APIError` | The API returned an error. Carries `Method`, `Code` and `Description` (e.g. `ZERO_BALANCE`). |
+| `*ValidationError` | The request struct failed validation. Carries `Field` and `Reason`. |
+| `*StatusError` | The API answered with a non-200 HTTP status. Carries `Method` and `Status`. |
+| `*MalformedResponseError` | The API response could not be parsed. |
+| `context.Canceled`, `context.DeadlineExceeded` | The passed `context.Context` was cancelled or timed out. |
+
+```go
+solution, err := client.Solve(ctx, req)
+if err != nil {
+	var apiErr *capmonster.APIError
+	switch {
+	case errors.Is(err, capmonster.ErrTimeout):
+		log.Println("no solution in time")
+	case errors.As(err, &apiErr):
+		log.Printf("API error: %s %s", apiErr.Code, apiErr.Description)
+	default:
+		log.Println(err)
+	}
+	return
+}
+```
+
+**Polling and timeouts.** The client polls `getTaskResult` automatically. Each request type defines its own schedule via `req.Timeouts()`: a pause before the first `getTaskResult` call (`FirstRequestDelay`), the polling interval (`RequestsInterval`) and the total waiting time (`Timeout`). Override the schedule with `WithTimeoutsOverride` and limit a single call with `context.WithTimeout`. `TaskResult.Cost` (ready responses of `GetTaskResult`) carries the price of the solved task in USD. Unsolved tasks are not charged.
 
 ---
 
